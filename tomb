@@ -1287,7 +1287,11 @@ ask_key_password() {
 # call cryptsetup with arguments using the currently known secret
 # echo flags eliminate newline and disable escape (BSD_ECHO)
 _cryptsetup() {
-	print -R -n - "$TOMBSECRET" | _sudo cryptsetup --type luks1 --key-file - ${@}
+	if option_is_set -q; then
+		print -R -n - "$TOMBSECRET" | _sudo cryptsetup --type luks1 --key-file - ${@} 2> /dev/null
+	else
+		print -R -n - "$TOMBSECRET" | _sudo cryptsetup --type luks1 --key-file - ${@}
+	fi
 	return $?
 }
 
@@ -2306,7 +2310,11 @@ mount_tomb() {
 		_message "Checking filesystem via ::1::" $tombstat[3]
 		case $filesystem in
 			ext3|ext4)
-				_sudo fsck -p -C0 /dev/mapper/${TOMBMAPPER}
+				if option_is_set -q; then
+					_sudo fsck -p -C0 /dev/mapper/${TOMBMAPPER} > /dev/null
+				else
+					_sudo fsck -p -C0 /dev/mapper/${TOMBMAPPER}
+				fi
 				# TODO:     btrfs filesystem label [<device>|<mount_point>] [<newlabel>]
 				_sudo tune2fs -L $TOMBNAME /dev/mapper/${TOMBMAPPER} > /dev/null
 				;;
