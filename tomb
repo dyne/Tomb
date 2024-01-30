@@ -67,6 +67,7 @@ typeset -i SPHINX=1
 typeset -i RESIZER=1
 typeset -i SWISH=1
 typeset -i QRENCODE=1
+typeset -i ACL=1
 
 # Default mount options
 typeset		 MOUNTOPTS="rw,noatime,nodev"
@@ -1030,6 +1031,8 @@ _ensure_dependencies() {
 	command -v swish-e 1>/dev/null 2>/dev/null || SWISH=0
 	# Check for QREncode for paper backups of keys
 	command -v qrencode 1>/dev/null 2>/dev/null || QRENCODE=0
+	# Check for acl/setfacl for setting ACL at the mount location
+	command -v setfacl 1>/dev/null 2>/dev/null || ACL=0
 }
 
 # }}} - Commandline interaction
@@ -2478,6 +2481,11 @@ mount_tomb() {
 
 	# we need root from here on
 	_sudo mkdir -p "$tombmount"
+
+	# set ACL on /run/media/$_USER/
+	[[ $ACL == 1 ]] && [[ ! -d /media ]] && {
+		_sudo setfacl -m u:"$_USER":rwx "/run/media/$_USER"
+	}
 
 	# Default mount options are overridden with the -o switch
 	{ option_is_set -o } && {
