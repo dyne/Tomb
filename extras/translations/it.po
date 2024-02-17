@@ -2,14 +2,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Tomb\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: \n"
-"Last-Translator: Daniel Dias Rodrigues <danieldiasr@gmail.com>\n"
-"Language-Team: \n"
+"PO-Revision-Date: 2024-02-17 16:02+0000\n"
+"Last-Translator: Gianluca Montecchi <mgian@pm.me>\n"
+"Language-Team: Italian <https://hosted.weblate.org/projects/tomb/tomb/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.0.1\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.4\n"
 
 #: tomb:Safety functions:_sudo:124
 msgid "[sudo] Enter password for user ::1 user:: to gain superuser privileges"
@@ -29,7 +30,7 @@ msgstr "Errore fatale durante la creazione della cartella temporanea: ::1 temp d
 
 #: tomb:Safety functions:_tmp_create:266
 msgid "Fatal error setting the permission umask for temporary files"
-msgstr "Errore fatale nell'impostazione dei permessi per i file temporanei."
+msgstr "Errore fatale nell'impostazione dei permessi per i file temporanei"
 
 #: tomb:Safety functions:_tmp_create:269
 msgid "Someone is messing up with us trying to hijack temporary files."
@@ -93,7 +94,7 @@ msgstr "File tomb non scrivibile: ::1 tomb file::"
 
 #: tomb:Safety functions:is_valid_tomb:517
 msgid "Tomb file is not a regular file: ::1 tomb file::"
-msgstr "File tomb non valido file: ::1 tomb file:: "
+msgstr "File tomb non valido file: ::1 tomb file::"
 
 #: tomb:Safety functions:is_valid_tomb:523
 msgid "Tomb file is empty (zero length): ::1 tomb file::"
@@ -145,15 +146,16 @@ msgstr " // Creazione:"
 
 #: tomb:Commandline interaction:usage:618
 msgid " forge   create a new KEY file and set its password"
-msgstr " forge   crea un nuovo KEY file e imposta la sua password "
+msgstr " forge   crea un nuovo KEY file e imposta la sua password"
 
 #: tomb:Commandline interaction:usage:619
 msgid " lock    installs a lock on a TOMB to use it with KEY"
-msgstr " lock    installa un codice di blocco su un file TOMB da usare con la sua KEY "
+msgstr ""
+" lock    installa un codice di blocco su un file TOMB da usare con la sua KEY"
 
 #: tomb:Commandline interaction:usage:621
 msgid " // Operations on tombs:"
-msgstr " // Operazioni sui file tomb: "
+msgstr " // Operazioni sui file tomb:"
 
 #: tomb:Commandline interaction:usage:603
 msgid " open    open an existing TOMB"
@@ -189,7 +191,8 @@ msgstr " // Operazioni sulle chiavi:"
 
 #: tomb:Commandline interaction:usage:633
 msgid " passwd  change the password of a KEY (needs old pass)"
-msgstr " passwd  cambiare la password di una KEY (necessaria la vecchia password) "
+msgstr ""
+" passwd  cambiare la password di una KEY (necessaria la vecchia password)"
 
 #: tomb:Commandline interaction:usage:634
 msgid " setkey  change the KEY locking a TOMB (needs old key and pass)"
@@ -213,7 +216,8 @@ msgstr " bury    nasconde una KEY dentro un'immagine JPEG (da usare con switch -
 
 #: tomb:Commandline interaction:usage:644
 msgid " exhume  extract a KEY from a JPEG image (prints to stdout)"
-msgstr " exhume  estrae una KEY da un'immagine JPEG (viene visualizzata a video) "
+msgstr ""
+" exhume  estrae una KEY da un'immagine JPEG (viene visualizzata a video)"
 
 #: tomb:Commandline interaction:usage:647
 msgid "Options:"
@@ -297,7 +301,7 @@ msgstr "Key valida."
 
 #: tomb:Key operations:recover_key:866
 msgid "Attempting key recovery."
-msgstr "Tentando recupero chiave"
+msgstr "Tentando recupero chiave."
 
 #: tomb:Key operations:_load_key:890
 msgid "This operation requires a key file to be specified using the -k option."
@@ -413,7 +417,7 @@ msgstr "Tomb key codificata con successo nell'immagine ::1 image file::"
 
 #: tomb:Key operations:exhume_key:1284
 msgid "Exhume failed, no image specified"
-msgstr "Exhume fallito, immagine non specificata."
+msgstr "Exhume fallito, immagine non specificata"
 
 #: tomb:Key operations:exhume_key:1294
 msgid "Exhume failed, image file not found: ::1 image file::"
@@ -425,7 +429,7 @@ msgstr "Exhume fallito: ::1 image file:: non è un'immagine jpeg."
 
 #: tomb:Key operations:exhume_key:1303
 msgid "Wrong password or no steganographic key found"
-msgstr "Password sbagliata o key steganografica non trovata."
+msgstr "Password sbagliata o key steganografica non trovata"
 
 #: tomb:Key operations:exhume_key:1314
 msgid "printing exhumed key on stdout"
@@ -453,7 +457,7 @@ msgstr "Provo l'exhume della key dall'immagine ::1 image file::"
 
 #: tomb:Key operations:exhume_key:1348
 msgid "Key succesfully exhumed to ::1 key::."
-msgstr "Key exhume riuscito su ::1 key::"
+msgstr "Key exhume riuscito su ::1 key::."
 
 #: tomb:Key operations:exhume_key:1350
 msgid "Nothing found in ::1 image file::"
@@ -509,11 +513,11 @@ msgstr "Il tuo file tomb non è ancora pronto, devi forgiare una key e farne il 
 
 #: tomb:Create:dig_tomb:1444
 msgid "tomb forge ::1 tomb path::.key"
-msgstr "tomb forge ::1 tomb path::.key "
+msgstr "tomb forge ::1 tomb path::.key"
 
 #: tomb:Create:dig_tomb:1445
 msgid "tomb lock ::1 tomb path:: -k ::1 tomb path::.key"
-msgstr "tomb lock ::1 tomb path:: -k ::1 tomb path::.key "
+msgstr "tomb lock ::1 tomb path:: -k ::1 tomb path::.key"
 
 #: tomb:Create:forge_key:1466
 msgid "A filename needs to be specified using -k to forge a new key."
@@ -725,7 +729,7 @@ msgstr "Apro ::1 tomb file:: su ::2 mount point::"
 
 #: tomb:Open:mount_tomb:1765
 msgid "::1 tomb file:: is not a valid Luks encrypted storage file."
-msgstr "::1 tomb file:: non "
+msgstr "::1 tomb file:: non"
 
 #: tomb:Open:mount_tomb:1767
 msgid "This tomb is a valid LUKS encrypted device."
@@ -817,7 +821,9 @@ msgstr "::1 tombname:: aperto da ::2 tombuser:: dal sistema ::3 tombtty:: su ::4
 
 #: tomb:List:list_tombs:2051
 msgid "::1 tombname:: size ::2 tombtot:: of which ::3 tombused:: (::5 tombpercent::%) is used: ::4 tombavail:: free "
-msgstr "::1 tombname:: misura ::2 tombtot:: di cui ::3 tombused:: (::5 tombpercent::%) è usato: ::4 tombavail:: liberi"
+msgstr ""
+"::1 tombname:: misura ::2 tombtot:: di cui ::3 tombused:: (::5 "
+"tombpercent::%) è usato: ::4 tombavail:: liberi "
 
 #: tomb:List:list_tombs:2055
 msgid "::1 tombname:: warning: your tomb is almost full!"
@@ -1114,6 +1120,7 @@ msgstr "Prova a usare -h per l'aiuto."
 #: tomb:Safety functions:_ensure_safe_swap:330
 msgid "The undertaker found that all swap partitions are encrypted. Good."
 msgstr ""
+"Il becchino ha scoperto che tutte le partizioni di swap sono cifrate. Bene."
 
 #: tomb:Safety functions:_ensure_safe_swap:335
 msgid "[#163] I may not detect plain swaps on an encrypted volume."
@@ -1138,6 +1145,8 @@ msgstr ""
 #: tomb:Key operations:gen_key:1168
 msgid "Depending on the speed of machines using this tomb, use 1 to 10, or more"
 msgstr ""
+"A seconda della velocità della macchine che usano questo tomb, usa valori da "
+"1 a 10, o maggiori"
 
 #: tomb:Key operations:gen_key:1174
 msgid "Using KDF, iteration time: ::1 microseconds::"
@@ -1145,7 +1154,7 @@ msgstr ""
 
 #: tomb:Create:dig_tomb:1409
 msgid "Size must be an integer (mebibytes)"
-msgstr ""
+msgstr "La dimensione deve essere un intero (mebibytes)"
 
 #: tomb:Create:dig_tomb:1410
 msgid "Tombs can't be smaller than 10 mebibytes"
