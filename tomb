@@ -48,8 +48,6 @@ for arg in "${(@)argv}"; do OLDARGS+=("$arg"); done
 typeset -a DD WIPE PINENTRY SUDO
 DD=(dd)
 WIPE=(rm -f)
-PINENTRY=(pinentry)
-SUDO=(sudo)
 
 # load zsh regex module
 zmodload zsh/mapfile
@@ -65,7 +63,7 @@ typeset -i CLOAKIFY=1
 typeset -i DECLOAKIFY=1
 typeset -i SPHINX=1
 typeset -i RESIZER=1
-typeset -i SWISH=1
+typeset -i RECOLL=1
 typeset -i QRENCODE=1
 
 # Default mount options
@@ -133,15 +131,29 @@ _sudo() {
 		esac
 
 	else
-		local msg="[sudo] Enter password for user ::1 user:: to gain superuser privileges"
-		command -v gettext 1>/dev/null 2>/dev/null && msg="$(gettext -s "$msg")"
-		msg=${(S)msg//::1*::/$USER}
-		[[ -n "$SUDO_ASKPASS" ]] && local sudo_askpass="--askpass"
-		sudo $sudo_askpass -p "
+    if [[ "`id -u`" = "0" ]]; then
+			_verbose "Super user execution skipped (SUID caller)"
+			${@}
+			return $?
+    elif command -v sudo 1>/dev/null 2>/dev/null; then
+		  local msg="[sudo] Enter password for user ::1 user:: to gain superuser privileges"
+		  command -v gettext 1>/dev/null 2>/dev/null && msg="$(gettext -s "$msg")"
+		  msg=${(S)msg//::1*::/$USER}
+		  [[ -n "$SUDO_ASKPASS" ]] && local sudo_askpass="--askpass"
+		  sudo $sudo_askpass -p "
 $msg
 
 " ${@}
-		return $?
+		  return $?
+    elif command -v doas 1>/dev/null 2>/dev/null; then
+		  local msg="Enter password for user ::1 user:: to gain superuser privileges"
+		  command -v gettext 1>/dev/null 2>/dev/null && msg="$(gettext -s "$msg")"
+		  msg=${(S)msg//::1*::/$USER}
+      doas ${@}
+      return $?
+    else
+      _failure "No way found to escalate privileges to super user."
+    fi
 	fi
 }
 
@@ -525,15 +537,22 @@ ask_password() {
 	fi
 	if [[ $pass_asked == 0 ]]; then
 		_verbose "no display detected"
-		_is_found "pinentry-curses" && {
+		if _is_found "pinentry-curses"; then
 			_verbose "using pinentry-curses with no display"
 			output=$(pinentry_assuan_getpass | pinentry-curses)
 			pass_asked=1
-		}
+		elif _is_found "pinentry-tty"; then
+			_verbose "using pinentry-tty with no display"
+			output=$(pinentry_assuan_getpass | pinentry-tty)
+			pass_asked=1
+    else
+      # TODO: fallback to asking password using read
+		  _failure "Cannot find any pinentry and no DISPLAY detected."
+    fi
 	fi
 
 	[[ $pass_asked == 0 ]] &&
-		_failure "Cannot find any pinentry-curses and no DISPLAY detected."
+		_failure "Cannot find any pinentry and no DISPLAY detected."
 
 	# parse the pinentry output
 	local pinentry_error
@@ -687,7 +706,7 @@ is_valid_tomb() {
 		_failure "Tomb won't work without a TOMBNAME."
 
 	# checks if Tomb already mounted (or we cannot alter it)
-	local maphash=`realpath $TOMBPATH | sha256sum -z`
+	local maphash=`realpath $TOMBPATH | sha256sum`
 	lo_mount # fills TOMBLOOP with next loop
 	TOMBMAPPER="tomb.$TOMBNAME.${maphash[(w)1]}.`basename $TOMBLOOP`"
 	local mounted_tombs=(`list_tomb_mounts`)
@@ -970,7 +989,7 @@ function _print() {
 _list_optional_tools() {
 	typeset -a _deps
 	_deps=(gettext dcfldd shred steghide)
-	_deps+=(resize2fs tomb-kdb-pbkdf2 argon2 qrencode swish-e unoconv lsof)
+	_deps+=(resize2fs tomb-kdb-pbkdf2 argon2 qrencode recoll unoconv lsof)
 	for d in $_deps; do
 		_print "`which $d`"
 	done
@@ -987,11 +1006,16 @@ _list_optional_tools() {
 _ensure_dependencies() {
 
 	# Check for required programs
-	for req in cryptsetup pinentry sudo gpg mkfs.ext4 e2fsck; do
+	for req in cryptsetup gpg mkfs.ext4 e2fsck; do
 		command -v $req 1>/dev/null 2>/dev/null || {
 			_failure "Missing required dependency ::1 command::.  Please install it." $req; }
 	done
-
+  # Check for pinentry or at least pinentry-tty (which has no alias)
+  if ! command -v pinentry 1>/dev/null 2>/dev/null; then
+    if ! command -v pinentry-tty 1>/dev/null 2>/dev/null; then
+			_failure "Missing required dependency ::1 command::.  Please install it." pinentry
+    fi
+  fi
 	# Ensure system binaries are available in the PATH
 	path+=(/sbin /usr/sbin) # zsh magic
 
@@ -999,10 +1023,10 @@ _ensure_dependencies() {
 	# command -v pkexec 1>/dev/null 2>/dev/null
 	# [[ $? == 0 ]] && ps ax | grep '[p]olkitd' 1>/dev/null 2>/dev/null && {
 	#     SUDO=(pkexec)	}
-	[[ "$SUDO" == "sudo" ]] && {
-	    command -v sudo 1>/dev/null 2>/dev/null ||
-		_failure "No privilege escalation tool found, not even sudo"
-	}
+	# [[ "$SUDO" == "sudo" ]] && {
+	#     command -v sudo 1>/dev/null 2>/dev/null ||
+	# 	_failure "No privilege escalation tool found, not even sudo"
+	# }
 
 	# Which dd command to use
 	command -v dcfldd 1>/dev/null 2>/dev/null && DD=(dcfldd statusinterval=1)
@@ -1026,8 +1050,8 @@ _ensure_dependencies() {
 	command -v tomb-kdb-pbkdf2 1>/dev/null 2>/dev/null || KDF=0
 	# Check for ARGON2 KDF auxiliary tools
 	command -v argon2 1>/dev/null 2>/dev/null || ARGON2=0
-	# Check for Swish-E file content indexer
-	command -v swish-e 1>/dev/null 2>/dev/null || SWISH=0
+	# Check for Recoll file content indexer
+	command -v recoll 1>/dev/null 2>/dev/null || RECOLL=0
 	# Check for QREncode for paper backups of keys
 	command -v qrencode 1>/dev/null 2>/dev/null || QRENCODE=0
 }
@@ -1602,6 +1626,8 @@ gen_key() {
 					kdfmem="`option_value --kdfmem`"
 					kdfmem=${kdfmem:-18}
 					_message "memory used: 2^::1 kdfmemory::" $kdfmem
+          itertime="`option_value --kdf`"
+          itertime=${itertime:-3}
 					kdfsalt=`tomb-kdb-pbkdf2-gensalt`
 					_message "kdf salt: ::1 kdfsalt::" $kdfsalt
 					_message "kdf iterations: ::1 kdfiterations::" $itertime
@@ -1835,10 +1861,11 @@ exhume_key() {
 cloakify_key() {
 
 	_load_key	 # Try loading key from option -k and set TOMBKEY
-
 	local cipher="$1"    # The cipher to use
 	local destfile="$2"  # (Optional) the output file where to save the
 	# result (none for stdout)
+  [[ -r "${cipher}" ]] ||
+    _failure "Cloak cipher file not found, see tomb/extras/cloak/ciphers"
 
 	_success "Encoding key ::1 tomb key:: using cipher ::2 cipher file::" $TOMBKEYFILE $cipher
 
@@ -1859,7 +1886,7 @@ cloakify_key() {
 	}
 
 	# Cipher the key
-	cloakify $TOMBKEYFILE $cipher >$destfile
+	cloakify -i $TOMBKEYFILE -c $cipher >$destfile
 	if [ $? != 0 ]; then
 		_warning "Encoding error: cloakify reports problems."
 		res=1
@@ -1899,7 +1926,7 @@ decloakify_key() {
 	# Ensure we have a valid destination for the key
 	[[ -z $destkey ]] && { option_is_set -k } && destkey=$(option_value -k)
 	[[ -z $destkey ]] && {
-		destkey="/dev/stdout" # No key was specified: fallback to stdout
+		# No key was specified: fallback to stdout
 		_message "printing uncloaked key on stdout" }
 
 	# Bail out if destination exists, unless -f (force) was passed
@@ -1914,11 +1941,15 @@ decloakify_key() {
 	}
 
 	# Extract the key from the text file
-	decloakify $textfile $cipher >$destkey
+  if [[ -z "$destkey" ]]; then
+	  decloakify -i "${textfile}" -c "${cipher}"
+  else
+	  decloakify -i "${textfile}" -c "${cipher}" -o "${destkey}"
+  fi
 	r=$?
 
 	# Report to the user
-	[[ "$destkey" = "/dev/stdout" ]] && destkey="stdout"
+	[[ -z "$destkey" ]] && destkey="stdout"
 	[[ $r == 0 ]] && {
 		_success "Key succesfully uncloaked to ::1 key::." $destkey
 	} || {
@@ -2815,17 +2846,6 @@ BEGIN { }
 # index files in all tombs for search
 # $1 is optional, to specify a tomb
 index_tombs() {
-	{ command -v updatedb 1>/dev/null 2>/dev/null } || {
-		_failure "Cannot index tombs on this system: updatedb (mlocate/plocate) not installed." }
-
-	updatedbver=`updatedb --version | grep '^updatedb'`
-	[[ "$updatedbver" =~ "GNU findutils" ]] && {
-		_warning "Cannot use GNU findutils for index/search commands." }
-	[[ "$updatedbver" =~ "locate" ]] || {
-		_failure "Index command needs 'mlocate/plocate' to be installed." }
-
-	_verbose "$updatedbver"
-
 	mounted_tombs=(`list_tomb_mounts $1`)
 	[[ ${#mounted_tombs} == 0 ]] && {
 		# Considering one tomb
@@ -2836,11 +2856,11 @@ index_tombs() {
 
 	_success "Creating and updating search indexes."
 
-	# start the LibreOffice document converter if installed
-	{ command -v unoconv 1>/dev/null 2>/dev/null } && {
-		unoconv -l 2>/dev/null &
-		_verbose "unoconv listener launched."
-		sleep 1 }
+	# # start the LibreOffice document converter if installed
+	# { command -v unoconv 1>/dev/null 2>/dev/null } && {
+	# 	unoconv -l 2>/dev/null &
+	# 	_verbose "unoconv listener launched."
+	# 	sleep 1 }
 
 	for t in ${mounted_tombs}; do
 		mapper=`basename ${t[(ws:;:)1]}`
@@ -2849,82 +2869,31 @@ index_tombs() {
 		[[ -r "${tombmount}/.noindex" ]] && {
 			_message "Skipping ::1 tomb name:: (.noindex found)." $tombname
 			continue }
-		_message "Indexing ::1 tomb name:: filenames..." $tombname
-		updatedb -l 0 -o "${tombmount}/.updatedb" -U "${tombmount}"
 
-		# here we use swish to index file contents
-		[[ $SWISH == 1 ]] && {
+	  { command -v updatedb 1>/dev/null 2>/dev/null } && {
+	    updatedbver=`updatedb --version | grep '^updatedb'`
+	    if [[ "$updatedbver" =~ "GNU findutils" ]]; then
+		    _warning "Cannot use GNU findutils for index/search commands."
+      # elif [[ "$updatedbver" =~ "locate" ]]; then
+		  #   _warning "Index command needs 'mlocate/plocate' to be installed."
+      else
+		    _message "Indexing ::1 tomb name:: filenames..." $tombname
+	      _verbose "$updatedbver"
+		    updatedb -l 0 -o "${tombmount}/.updatedb" -U "${tombmount}"
+      fi
+    }
+
+		# here we use recoll to index file contents
+		[[ $RECOLL == 1 ]] && {
 			_message "Indexing ::1 tomb name:: contents..." $tombname
-			rm -f "${tombmount}/.swishrc"
-			_message "Generating a new swish-e configuration file: ::1 swish conf::" "${tombmount}/.swishrc"
-			cat <<EOF > "${tombmount}/.swishrc"
-# index directives
-DefaultContents TXT*
-IndexDir "$tombmount"
-IndexFile "$tombmount/.swish"
-# exclude images
-FileRules filename regex /\.jp.?g/i
-FileRules filename regex /\.png/i
-FileRules filename regex /\.gif/i
-FileRules filename regex /\.tiff/i
-FileRules filename regex /\.svg/i
-FileRules filename regex /\.xcf/i
-FileRules filename regex /\.eps/i
-FileRules filename regex /\.ttf/i
-# exclude audio
-FileRules filename regex /\.mp3/i
-FileRules filename regex /\.ogg/i
-FileRules filename regex /\.wav/i
-FileRules filename regex /\.mod/i
-FileRules filename regex /\.xm/i
-# exclude video
-FileRules filename regex /\.mp4/i
-FileRules filename regex /\.avi/i
-FileRules filename regex /\.ogv/i
-FileRules filename regex /\.ogm/i
-FileRules filename regex /\.mkv/i
-FileRules filename regex /\.mov/i
-FileRules filename regex /\.flv/i
-FileRules filename regex /\.webm/i
-# exclude system
-FileRules filename is ok
-FileRules filename is lock
-FileRules filename is control
-FileRules filename is status
-FileRules filename is proc
-FileRules filename is sys
-FileRules filename is supervise
-FileRules filename regex /\.asc$/i
-FileRules filename regex /\.gpg$/i
-# pdf and postscript
-FileFilter .pdf pdftotext "'%p' -"
-FileFilter .ps	ps2txt "'%p' -"
-# compressed files
-FileFilterMatch lesspipe "%p" /\.tgz$/i
-FileFilterMatch lesspipe "%p" /\.zip$/i
-FileFilterMatch lesspipe "%p" /\.gz$/i
-FileFilterMatch lesspipe "%p" /\.bz2$/i
-FileFilterMatch lesspipe "%p" /\.Z$/
-# spreadsheets
-FileFilterMatch unoconv "-d spreadsheet -f csv --stdout %P" /\.xls.*/i
-FileFilterMatch unoconv "-d spreadsheet -f csv --stdout %P" /\.xlt.*/i
-FileFilter .ods unoconv "-d spreadsheet -f csv --stdout %P"
-FileFilter .ots unoconv "-d spreadsheet -f csv --stdout %P"
-FileFilter .dbf unoconv "-d spreadsheet -f csv --stdout %P"
-FileFilter .dif unoconv "-d spreadsheet -f csv --stdout %P"
-FileFilter .uos unoconv "-d spreadsheet -f csv --stdout %P"
-FileFilter .sxc unoconv "-d spreadsheet -f csv --stdout %P"
-# word documents
-FileFilterMatch unoconv "-d document -f txt --stdout %P" /\.doc.*/i
-FileFilterMatch unoconv "-d document -f txt --stdout %P" /\.odt.*/i
-FileFilterMatch unoconv "-d document -f txt --stdout %P" /\.rtf.*/i
-FileFilterMatch unoconv "-d document -f txt --stdout %P" /\.tex$/i
-# native html support
-IndexContents HTML* .htm .html .shtml
-IndexContents XML* .xml
+			rm -f "${tombmount}/recoll.conf"
+			_message "Generating a new search index configuration: ::1 recoll conf::" "${tombmount}/recoll.conf"
+      mkdir -p "${tombmount}/.recoll"
+			cat <<EOF > "${tombmount}/recoll.conf"
+topdirs = ${tombmount}
+cachedir = ${tombmount}/.recoll
 EOF
-
-			swish-e -c "${tombmount}/.swishrc" -S fs -v3
+			recollindex -c "${tombmount}"
 		}
 		_message "Search index updated."
 	done
@@ -2961,10 +2930,10 @@ search_tombs() {
 			_message "Matches found: ::1 matches::" \
 					 $(locate -d "${tombmount}/.updatedb" -e -i -c ${(f)@})
 
-			# Use swish-e to search over contents
-			[[ $SWISH == 1 && -r "$tombmount/.swish" ]] && {
+			# Use recoll to search over contents
+			[[ $RECOLL == 1 && -r "$tombmount/recoll.conf" ]] && {
 				_message "Searching contents in tomb ::1 tomb name::" $tombname
-				swish-e -w ${@} -f "$tombmount/.swish" -H0 }
+				recollq -c "${tombmount}" ${@} }
 		} || {
 			_warning "Skipping tomb ::1 tomb name::: not indexed." $tombname
 			_warning "Run 'tomb index' to create indexes." }

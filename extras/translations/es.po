@@ -94,8 +94,8 @@ msgstr "Operación abortada."
 
 #: tomb:Safety functions:ask_password:536
 #, fuzzy
-msgid "Cannot find any pinentry-curses and no DISPLAY detected."
-msgstr "No se puede encontrar pinentry-curses, y no se ha detectado DISPLAY."
+msgid "Cannot find any pinentry and no DISPLAY detected."
+msgstr "No se puede encontrar pinentry, y no se ha detectado DISPLAY."
 
 #: tomb:Safety functions:ask_password:550
 msgid "Pinentry error: ::1 error::"
@@ -1259,8 +1259,8 @@ msgid "Indexing ::1 tomb name:: contents..."
 msgstr "Indexando el contenido de ::1 tumba::..."
 
 #: tomb:Index and search:index_tombs:2859
-msgid "Generating a new swish-e configuration file: ::1 swish conf::"
-msgstr "Generando un nuevo fichero de configuración de swish-e: ::1 conf::"
+msgid "Generating a new search index configuration file: ::1 swish conf::"
+msgstr "Generando un nuevo fichero de configuración de search index: ::1 conf::"
 
 #: tomb:Index and search:index_tombs:2929
 msgid "Search index updated."
