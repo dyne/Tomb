@@ -31,7 +31,7 @@ jobs:
       - name: Install tomb dependencies
         run: |
           sudo apt-get update -y -q
-          sudo apt-get install -y -q zsh cryptsetup gpg gawk libgcrypt20-dev steghide qrencode python2 python3-pip python3-dev libssl-dev make gcc sudo gettext bsdmainutils file pinentry-curses xxd libsodium23 libsodium-dev
+          sudo apt-get install -y -q zsh cryptsetup gpg gawk libgcrypt20-dev steghide qrencode python2 python3-pip python3-dev libssl-dev make gcc sudo gettext bsdmainutils file pinentry-curses xxd libsodium23 libsodium-dev argon2
       - uses: actions/checkout@v3
       - name: Build the KDF extras
         run: |
