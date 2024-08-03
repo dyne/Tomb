@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2024-08-01 14:09+0000\n"
+"PO-Revision-Date: 2024-08-04 17:09+0000\n"
 "Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://hosted.weblate.org/projects/tomb/tomb/fi/>\n"
 "Language: fi\n"
@@ -74,7 +74,7 @@ msgstr "Voit poistaa kaikki sivutusosiot käytöstä komennolla:"
 
 #: tomb:Safety functions:_ensure_safe_swap:428
 msgid " swapoff -a"
-msgstr " swapoff -a"
+msgstr " 'swapoff -a'"
 
 #: tomb:Safety functions:_ensure_safe_swap:429
 msgid "[#163] I may not detect plain swaps on an encrypted volume."
@@ -845,10 +845,12 @@ msgstr "Täällä ei ole hautaa. Sinun täytyy kaivaa se ensin."
 #: tomb:Create:lock_tomb_with_key:2166
 msgid "Filesystem ::1 filesystem:: not supported on tombs smaller than 47MB."
 msgstr ""
+"Tiedostojärjestelmä ::1 filesystem:: :ta ei tueta alle 47 Mt:n haudoissa."
 
 #: tomb:Create:lock_tomb_with_key:2172
 msgid "Filesystem ::1 filesystem:: not supported on tombs smaller than 18MB."
 msgstr ""
+"Tiedostojärjestelmä ::1 filesystem:: :ta ei tueta alle 18 Mt:n haudoissa."
 
 #: tomb:Create:lock_tomb_with_key:2177
 msgid "Filesystem not supported: ::1 filesystem::"
